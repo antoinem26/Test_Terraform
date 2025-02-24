@@ -28,4 +28,10 @@ resource "docker_container" "nginx" {
     internal = 80
     external = var.start_port + count.index
   }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      docker exec nginx_container_${count.index} sh -c 'echo "Welcome to $(hostname)" > /usr/share/nginx/html/index.html'
+    EOT
+  }
 }
