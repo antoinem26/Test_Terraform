@@ -12,15 +12,20 @@ provider "docker" {
 }
 
 resource "docker_image" "nginx" {
-  name         = "nginx:latest"
+  name         = var.image
   keep_locally = false
 }
 
 resource "docker_container" "nginx" {
-  image = docker_image.nginx.image_id
-  name  = "nginx_container"
+  count = var.container_count
+
+  image      = docker_image.nginx.name
+  name       = "nginx_container_${count.index}"
+  memory     = var.container_memory
+  privileged = var.privileged
+
   ports {
     internal = 80
-    external = 8000
+    external = var.start_port + count.index
   }
 }
