@@ -43,5 +43,11 @@ variable "instance_type" {
 variable "key_name" {
   description = "The name of the SSH key"
   type        = string
-  default     = "your-key-name"
+  default     = "my-key-pair"
+}
+
+variable "public_key_path" {
+  description = "The path to the public key file"
+  type        = string
+  default     = "/home/user/.ssh/id_rsa.pub"
 }
