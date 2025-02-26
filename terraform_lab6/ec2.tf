@@ -1,5 +1,7 @@
 provider "aws" {
-  region = "eu-west-3"
+  region     = var.aws_region
+  access_key = var.aws_access_key
+  secret_key = var.aws_secret_key
 }
 
 # 📌 Récupère le VPC existant "Lab5-6" créé par l'étudiant X
@@ -12,8 +14,9 @@ data "aws_vpc" "lab_vpc" {
 
 # 📌 Récupère les sous-réseaux privés créés par l'étudiant X (student-5)
 data "aws_subnet" "private" {
-  tags = {
-    Name = "student_5_11_Private"
+  filter {
+    name   = "tag:Name"
+    values = ["student_5_11_Private"]
   }
 }
 
@@ -33,21 +36,25 @@ data "aws_lb" "alb" {
 # 📌 Déploiement du module ASG pour Nginx (bitnami-nginx)
 module "nginx_asg" {
   source        = "./modules/asg"
-  ami_id        = "ami-0bf560181632e3b98" 
-  asg_min_size  = 2
-  asg_max_size  = 2
+  ami_id        = var.ami_nginx
+  asg_min_size  = var.min_size
+  asg_max_size  = var.max_size
+  key_name      = var.key_name
   subnets       = [data.aws_subnet.private.id]
   security_group = data.aws_security_group.internal.id
-  alb_arn        = data.aws_lb.alb.arn
+  alb_arn       = data.aws_lb.alb.arn
+  user_data     = base64encode("#!/bin/bash\necho 'Hello, Nginx!' > /var/www/html/index.html")
 }
 
 # 📌 Déploiement du module ASG pour Tomcat (bitnami-tomcat)
 module "tomcat_asg" {
   source        = "./modules/asg"
-  ami_id        = "ami-0d9aeb69ab2a9ede6"  # Remplacer par l'AMI de Tomcat
-  asg_min_size  = 2
-  asg_max_size  = 2
+  ami_id        = var.ami_tomcat
+  asg_min_size  = var.min_size
+  asg_max_size  = var.max_size
+  key_name      = var.key_name
   subnets       = [data.aws_subnet.private.id]
   security_group = data.aws_security_group.internal.id
-  alb_arn        = data.aws_lb.alb.arn
+  alb_arn       = data.aws_lb.alb.arn
+  user_data     = base64encode("#!/bin/bash\necho 'Hello, Tomcat!' > /var/www/html/index.html")
 }
